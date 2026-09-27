@@ -19,7 +19,8 @@ This template is not affiliated with MCP Memory Service.
 1. Open the [Deploy link](https://app.dockhold.eu/new?repo=https://github.com/dockhold/mcp-memory-service-starter&name=mcp-memory-service-starter&ref=button)
    and sign in if asked.
 2. Under **App size**, keep **256 MB**. Under **App storage**, turn it on
-   and pick **10 GB**. The free plan is enough.
+   and pick **10 GB**. The free plan covers both if the account has no
+   managed database yet.
 3. Under **Environment**, in the **Secrets** list, click **New secret**,
    tick it, and set its **Env var name** to `MCP_API_KEY`. Give the entry a
    name that belongs to this app, for example `mcp-memory-api-key`, because
@@ -78,7 +79,7 @@ directly as a bearer token. Treat it as the key to every memory in the app.
 
 | What you do | What happens |
 | --- | --- |
-| Change `MCP_API_KEY` in Dockhold (Settings > Secrets), then **Restart** | Every connected client is signed out and logs in again with the new key. The memories stay. |
+| Change `MCP_API_KEY` in Dockhold (**Secrets** in the dashboard sidebar), then **Restart** | Every connected client is signed out and logs in again with the new key. The memories stay. |
 | **Restart** or deploy with the key unchanged | Nothing. Clients stay logged in. |
 | Remove the secret, or set one shorter than 32 characters | The app refuses to start and its page says why. |
 
