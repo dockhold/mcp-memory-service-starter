@@ -12,11 +12,11 @@ use it as the starting point for your own memory server.
 
 This template is not affiliated with MCP Memory Service.
 
-[![Deploy to Dockhold](https://img.shields.io/badge/Deploy%20to-Dockhold-2563eb?style=for-the-badge)](https://app.dockhold.eu/new?repo=https://github.com/dockhold/mcp-memory-service-starter&name=agent-memory&ref=template-mcp-memory-service)
+[![Deploy on Dockhold](https://dockhold.eu/button.svg)](https://app.dockhold.eu/new?repo=https://github.com/dockhold/mcp-memory-service-starter&name=mcp-memory-service-starter&ref=button)
 
 ## Deploy
 
-1. Open the [Deploy link](https://app.dockhold.eu/new?repo=https://github.com/dockhold/mcp-memory-service-starter&name=agent-memory&ref=template-mcp-memory-service)
+1. Open the [Deploy link](https://app.dockhold.eu/new?repo=https://github.com/dockhold/mcp-memory-service-starter&name=mcp-memory-service-starter&ref=button)
    and sign in if asked.
 2. Under **App size**, keep **256 MB**. Under **App storage**, turn it on
    and pick **10 GB**. The free plan is enough.
