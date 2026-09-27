@@ -10,7 +10,9 @@ Steps run in order and print one PASS or FAIL line each; the first FAIL exits 1.
   search     finds that memory with semantic search
   revoked    the saved token is refused
   ratelimit  one visitor (by X-Forwarded-For) hits the login rate limit,
-             another visitor is not affected
+             another visitor is not affected (local runs, no proxy in front)
+  edge       on Dockhold: a made-up X-Forwarded-For does not buy a fresh limit,
+             because the edge replaces the header with the real address
 
 Standard library only, so it runs inside the app image itself.
 """
@@ -183,6 +185,14 @@ def step_ratelimit():
     check("one visitor sending 70 login requests is rate limited (429)", 429 in codes, sorted(set(codes)))
     s = req("GET", q, headers={"X-Forwarded-For": "203.0.113.9"})[0]
     check("a second visitor is not affected by the first one's limit", s != 429, s)
+
+
+def step_edge():
+    q = "/oauth/authorize?" + authorize_query("smoke-no-such-client", "x" * 43)
+    codes = [req("GET", q, headers={"X-Forwarded-For": "198.51.100.7"})[0] for _ in range(70)]
+    check("70 login requests from one visitor are rate limited (429)", 429 in codes, sorted(set(codes)))
+    s = req("GET", q, headers={"X-Forwarded-For": "203.0.113.9"})[0]
+    check("a made-up X-Forwarded-For is still limited (the edge sets the header)", s == 429, s)
 
 
 for step in STEPS:
