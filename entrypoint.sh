@@ -42,7 +42,7 @@ if [ -z "${MCP_API_KEY:-}" ]; then
   exit 1
 fi
 if [ "${#MCP_API_KEY}" -lt 32 ]; then
-  echo "MCP_API_KEY is shorter than 32 characters. Generate a longer one (openssl rand -hex 32), update the secret under Settings > Secrets and restart." >&2
+  echo "MCP_API_KEY is shorter than 32 characters. Generate a longer one (openssl rand -hex 32), update the secret under Secrets in the dashboard sidebar and restart." >&2
   exit 1
 fi
 

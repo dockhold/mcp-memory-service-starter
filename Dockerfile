@@ -12,7 +12,7 @@
 # turned off, so it never fetches code or data.
 #
 # Upgrading: change the tag and the digest on the FROM line together. The
-# weekly Upstream release check opens an issue with both. A wrong digest fails
+# daily Upstream release check opens an issue with both. A wrong digest fails
 # the build. That is the point.
 
 FROM docker.io/doobidoo/mcp-memory-service:11.14.0-slim@sha256:004b9278023db02414726a128d93bccfce03b1cea2a2bef22d488f86d6ecd23f

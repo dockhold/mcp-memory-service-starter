@@ -2,10 +2,12 @@
 # Smoke test for the mcp-memory-service-starter image, run the way Dockhold
 # runs it: user 1001, every capability dropped, no privilege escalation,
 # 256 MB of memory and no swap, App storage mounted at /data owned root:1001
-# with mode 2770, a fixed PORT, a generated API key, and no outbound network.
-# The root filesystem is read-only on top of that, which proves nothing is
-# written outside /data and /tmp. Every client step runs tests/flow.py inside
-# the image itself, on the same isolated network. Nothing upstream is mocked.
+# with mode 2770, a fixed PORT and a generated API key. Two restrictions go
+# further than Dockhold does. There is no outbound network, which proves the
+# app never downloads anything at runtime. The root filesystem is read-only,
+# which proves nothing is written outside /data and /tmp. Every client step
+# runs tests/flow.py inside the image itself, on the same isolated network.
+# Nothing upstream is mocked.
 #
 # Usage: tests/smoke.sh <image>
 # Needs: docker, bash 4 or newer. Exits non-zero if any case fails.
