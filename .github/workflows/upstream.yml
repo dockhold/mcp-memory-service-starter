@@ -1,0 +1,77 @@
+name: Upstream release check
+# Every day, compare the MCP Memory Service version pinned in the Dockerfile
+# with the latest upstream release. When they differ, open one issue (or
+# update the open one) with the new version, its slim image digest, and the
+# upgrade steps. Daily rather than weekly because upstream ships security
+# fixes in the latest release only. Digest pinning keeps rebuilds identical;
+# this is what keeps the pin from going stale unnoticed.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Compare the pinned version with the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          pinned=$(sed -n 's|^FROM docker\.io/doobidoo/mcp-memory-service:\([0-9][0-9.]*\)-slim@sha256:[0-9a-f]\{64\}$|\1|p' Dockerfile | head -n 1)
+          [ -n "$pinned" ] || { echo "could not read the pinned version from the Dockerfile"; exit 1; }
+          latest=$(gh api repos/doobidoo/mcp-memory-service/releases/latest --jq '.tag_name' | sed 's/^v//')
+          # The tag name comes from outside this repo. Accept digits and dots
+          # only before it goes anywhere near a shell or a URL.
+          case "$latest" in
+            *[!0-9.]*|"") echo "unexpected tag: $latest"; exit 1 ;;
+          esac
+          echo "pinned: $pinned, latest: $latest"
+          if [ "$pinned" = "$latest" ]; then
+            echo "up to date"
+            exit 0
+          fi
+          digest=$(curl -fsSL "https://hub.docker.com/v2/repositories/doobidoo/mcp-memory-service/tags/${latest}-slim" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin).get("digest",""))' || true)
+          # Only sha256: plus 64 hex characters is a digest; anything else
+          # becomes the placeholder so the issue never carries a crafted line.
+          case "$digest" in
+            sha256:*) hex=${digest#sha256:} ;;
+            *) hex="" ;;
+          esac
+          case "$hex" in *[!0-9a-f]*) hex="" ;; esac
+          [ "${#hex}" -eq 64 ] || hex=""
+          digest=${hex:+sha256:$hex}
+          title="Upstream release: MCP Memory Service ${latest} (pinned ${pinned})"
+          body=$(cat <<BODY
+          MCP Memory Service **v${latest}** is the latest release; this starter pins **${pinned}**.
+
+          Release notes: https://github.com/doobidoo/mcp-memory-service/releases/tag/v${latest}
+
+          To upgrade:
+
+          1. Read the release notes and the CHANGELOG upstream. Look for storage or OAuth changes and for security fixes.
+          2. In the Dockerfile set the FROM line to \`docker.io/doobidoo/mcp-memory-service:${latest}-slim@${digest:-<digest of the ${latest}-slim tag on Docker Hub>}\`.
+          3. Push a branch; the Check workflow builds the image, checks its size and runs the smoke test.
+          4. Test the upgrade on an install that already holds memories and logged-in clients.
+          5. Add a CHANGELOG entry that says whether the upgrade changes data, then merge.
+
+          This issue is updated by the daily upstream check until the pin moves.
+          BODY
+          )
+          gh label create upstream --description "Upstream release moved" --color 0E8A16 --force >/dev/null 2>&1 || true
+          existing=$(gh issue list --state open --label upstream --search "Upstream release: MCP Memory Service in:title" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --title "$title" --body "$body"
+            echo "updated issue #$existing"
+          else
+            gh issue create --title "$title" --body "$body" --label upstream
+          fi
